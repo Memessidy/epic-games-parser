@@ -131,7 +131,8 @@ class EpicFreeGamesParser:
                 if game:
                     self.future_games.append(game)
 
-    async def _fetch_data(self) -> List[Dict[str, Any]]:
+    @staticmethod
+    async def _fetch(url: str) -> Optional[Dict[str, Any] | None]:
         """Асинхронний запит із таймаутом та обробкою помилок."""
         timeout = aiohttp.ClientTimeout(total=15)
         headers = {
@@ -141,13 +142,11 @@ class EpicFreeGamesParser:
 
         async with aiohttp.ClientSession(timeout=timeout, headers=headers) as session:
             try:
-                async with session.get(config.BASE_URL) as resp:
+                async with session.get(url) as resp:
                     if resp.status != 200:
                         logger.error("HTTP статус %s під час запиту %s", resp.status, config.BASE_URL)
-                        return []
-
-                    data = await resp.json()
-                    return data.get("data", {}).get("Catalog", {}).get("searchStore", {}).get("elements", [])
+                        return None
+                    return await resp.json()
 
             except asyncio.TimeoutError:
                 logger.error("Таймаут під час запиту до Epic Games")
@@ -156,7 +155,11 @@ class EpicFreeGamesParser:
             except Exception as e:  # останній захист
                 logger.exception("Неочікувана помилка під час отримання даних: %s", e)
 
-            return []
+            return None
+
+    async def _fetch_data(self) -> List[Dict[str, Any]]:
+        data = await self._fetch(config.BASE_URL)
+        return data.get("data", {}).get("Catalog", {}).get("searchStore", {}).get("elements", [])
 
     async def parse(self) -> None:
         """Основний метод парсингу."""
@@ -183,7 +186,7 @@ def print_games(games):
         print(f"   Ціна: {game.price}")
         print(f"   З {game.start_date_formatted}  →  До {game.end_date_formatted}")
         print(f"   Посилання: {game.url}")
-        print(f"   Опис: {game.description[:40]}...\n")
+        print(f"   Опис: {game.description[:40]}...")
         if game.image:
             print(f"   Зображення: {game.image}")
         print("-" * 80)
