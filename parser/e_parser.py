@@ -183,6 +183,7 @@ def print_games(games):
         print(f"   Ціна: {game.price}")
         print(f"   З {game.start_date_formatted}  →  До {game.end_date_formatted}")
         print(f"   Посилання: {game.url}")
+        print(f"   Опис: {game.description[:40]}...\n")
         if game.image:
             print(f"   Зображення: {game.image}")
         print("-" * 80)
