@@ -25,7 +25,7 @@ class Game:
         try:
             # Epic надсилає дату у форматі: 2026-04-21T15:30:00.000Z
             dt = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
-            return dt.strftime("%d.%m.%Y %H:%M")
+            return dt.strftime("%d.%m.%Y")
         except (ValueError, TypeError):
             return date_str[:16] if date_str else "—"
 
